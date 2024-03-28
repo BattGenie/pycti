@@ -34,6 +34,8 @@ def test_messages():
                     Msg.StartSchedule.Server.pack()),
                 (Msg.StopSchedule.Client.pack(),
                     Msg.StopSchedule.Server.pack()),
+                (Msg.JumpChannel.Client.pack(),
+                    Msg.JumpChannel.Server.pack()),
                 (Msg.SetMetaVariable.Client.pack(),
                     Msg.SetMetaVariable.Server.pack()),
                 ]

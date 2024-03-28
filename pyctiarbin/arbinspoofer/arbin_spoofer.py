@@ -173,7 +173,8 @@ class SocketWorker:
 
         if cmd_code == Msg.Login.Client.command_code:
             rx_msg_dict = Msg.Login.Client.unpack(rx_msg)
-            tx_msg = Msg.Login.Server.pack({'num_channels':self.__channel_data.num_channels})
+            tx_msg = Msg.Login.Server.pack(
+                {'num_channels': self.__channel_data.num_channels})
         elif cmd_code == Msg.ChannelInfo.Client.command_code:
             rx_msg_dict = Msg.ChannelInfo.Client.unpack(rx_msg)
             channel_values = self.__channel_data.fetch_channel_readings(
@@ -190,6 +191,10 @@ class SocketWorker:
         elif cmd_code == Msg.StopSchedule.Client.command_code:
             rx_msg_dict = Msg.StopSchedule.Client.unpack(rx_msg)
             tx_msg = Msg.StopSchedule.Server.pack(
+                {'channel': rx_msg_dict['channel']})
+        elif cmd_code == Msg.JumpChannel.Client.command_code:
+            rx_msg_dict = Msg.JumpChannel.Client.unpack(rx_msg)
+            tx_msg = Msg.JumpChannel.Server.pack(
                 {'channel': rx_msg_dict['channel']})
         elif cmd_code == Msg.SetMetaVariable.Client.command_code:
             rx_msg_dict = Msg.SetMetaVariable.Client.unpack(rx_msg)

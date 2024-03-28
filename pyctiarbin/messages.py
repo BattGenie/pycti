@@ -63,7 +63,7 @@ class MessageABC(ABC):
 
         # Create a template to unpack message with
         template = {**deepcopy(cls.base_template),
-                   **deepcopy(cls.msg_specific_template)}
+                    **deepcopy(cls.msg_specific_template)}
 
         for item_name, item in template.items():
             start_idx = item['start_byte']
@@ -111,7 +111,7 @@ class MessageABC(ABC):
         """
         # Create a template to build messages from
         template = {**deepcopy(cls.base_template),
-                   **deepcopy(cls.msg_specific_template)}
+                    **deepcopy(cls.msg_specific_template)}
 
         # Update the template with message specific length and command code
         template['msg_length']['value'] = cls.msg_length
@@ -1080,6 +1080,95 @@ class Msg:
                 """
                 msg_dict = super().unpack(msg_bin)
                 msg_dict['result'] = cls.stop_test_feedback_codes[
+                    ord(msg_dict['result'])]
+                return msg_dict
+
+    class JumpChannel:
+        '''
+        Message for jumping channel to a different step in its schedule file.
+        THIRD_PARTY_JUMP_CHANNEL/THIRD_PARTY_JUMP_CHANNEL_FEEDBACK
+        in Arbin docs for more info.
+        '''
+        class Client(MessageABC):
+            msg_length = 119
+            command_code = 0xBB320005
+
+            msg_specific_template = {
+                'step_num': {
+                    'format': '<L',
+                    'start_byte': 20,
+                    'value': 0,
+                },
+                'channel': {
+                    'format': '<L',
+                    'start_byte': 24,
+                    'value': 0
+                },
+                'reserved': {
+                    'format': '101s',
+                    'start_byte': 28,
+                    'value': ''.join(['\0' for i in range(101)]),
+                    'text_encoding': 'utf-8',
+                },
+            }
+
+        class Server(MessageABC):
+            msg_length = 128
+            command_code = 0xBB230005
+
+            msg_specific_template = {
+                'channel': {
+                    'format': '<I',
+                    'start_byte': 20,
+                    'value': 0
+                },
+                'result': {
+                    'format': 'c',
+                    'start_byte': 24,
+                    'value': '\0',
+                    'text_encoding': 'utf-8',
+                },
+                'reserved': {
+                    'format': '101s',
+                    'start_byte': 25,
+                    'value': ''.join(['\0' for i in range(101)]),
+                    'text_encoding': 'utf-8',
+                },
+            }
+
+            jump_channel_feedback_codes = {
+                0: 'success',
+                17: 'Someone else is using the monitor window at the moment',
+                18: 'Channel not running',
+                19: 'Channel not connected to DAQ',
+                20: 'Invalid Schedule',
+                21: 'No schedule assigned',
+                22: 'Invalid schedule version',
+                25: 'Schedule cannot contain over 200 steps',
+                33: 'DAQ still downloading schedule',
+                36: 'Schedule contains invalid step limit setting',
+                37: 'Invalid parallel setting',
+                38: 'Schedule safety check not safe',
+            }
+
+            @classmethod
+            def unpack(cls, msg_bin: bytearray) -> dict:
+                """
+                Same as the parent method, but converts the result based on the
+                jump_channel_feedback_codes.
+
+                Parameters
+                ----------
+                msg_bin : bytearray
+                    The message to unpack.
+
+                Returns
+                -------
+                msg_dict : dict
+                    The message with items decoded into a dictionary
+                """
+                msg_dict = super().unpack(msg_bin)
+                msg_dict['result'] = cls.jump_channel_feedback_codes[
                     ord(msg_dict['result'])]
                 return msg_dict
 

@@ -1,0 +1,9 @@
+{
+    "header": 1287429013477645789,
+    "msg_length": 128,
+    "command_code": 3139633157,
+    "extended_command_code": 0,
+    "channel": 13,
+    "result": "success",
+    "reserved": ""
+}

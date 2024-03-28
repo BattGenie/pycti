@@ -156,6 +156,40 @@ class ChannelInterface(CyclerInterface):
 
         return success
 
+    def jump_channel(self, step_num: int) -> bool:
+        """
+        Jumps the test on the channel specified in the config to the passed step number `step_num`.
+        If `step_num` is greater than the number of steps in the schedule, test will stop.
+
+        Parameters
+        ----------
+        step_num: int
+            Step number in the schedule to jump the test to.
+        Returns
+        -------
+        success: bool
+            True/False based on whether the test successfully jumped step.
+        """
+        success = False
+
+        updated_msg_vals = {}
+        updated_msg_vals['channel'] = self.__config.channel
+        updated_msg_vals['step_num'] = step_num
+
+        jump_channel_tx_bin = Msg.JumpChannel.Client.pack(updated_msg_vals)
+        response_msg_bin = self._send_receive_msg(jump_channel_tx_bin)
+
+        if response_msg_bin:
+            jump_channel_msg_rx_dict = Msg.JumpChannel.Server.unpack(response_msg_bin)
+            if jump_channel_msg_rx_dict["response"] == "success":
+                success = True
+                logger.info(f"Successfully jumped channel to step {step_num}")
+                logger.debug(jump_channel_msg_rx_dict)
+            else:
+                logger.error(f"Failed to jump channel to step {step_num}! Issue: {jump_channel_msg_rx_dict['result']}")
+
+        return success
+
     def set_meta_variable(self, mv_num: int, mv_value: float) -> bool:
         """
         Sets the passed meta variable number `mv_num` to the passed value `mv_value`
@@ -196,6 +230,7 @@ class ChannelInterface(CyclerInterface):
                     f'Failed to set meta variable {mv_num} to a value of {mv_value}! Issue: {set_mv_msg_rx_dict["result"]}')
 
         return success
+
 
 class ChannelInterfaceConfig(BaseModel):
     '''
